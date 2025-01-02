@@ -1,4 +1,4 @@
-package main
+package logger
 
 import (
 	"log/slog"
@@ -11,7 +11,7 @@ var (
 	once           sync.Once
 )
 
-func Logger() *slog.Logger {
+func GetLogger() *slog.Logger {
 	once.Do(func() {
 		loggerInstance = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	})
