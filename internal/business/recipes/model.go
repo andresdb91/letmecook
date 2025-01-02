@@ -3,20 +3,20 @@ package recipes
 import "github.com/google/uuid"
 
 type Tag struct {
-	id      uuid.UUID
+	ID      uuid.UUID
 	Name    string
 	Indexed bool
 }
 
 type Component struct {
-	id      uuid.UUID
+	ID      uuid.UUID
 	Name    string
 	Tags    []Tag
 	Recipes []*Recipe
 }
 
 type Unit struct {
-	id              uuid.UUID
+	ID              uuid.UUID
 	Name            string
 	conversionTable map[*Unit]float64
 }
@@ -44,7 +44,7 @@ type Step struct {
 }
 
 type Recipe struct {
-	id                 uuid.UUID
+	ID                 uuid.UUID
 	ResultingComponent *Component
 	Name               string
 	Ingredients        []Ingredient
