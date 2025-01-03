@@ -55,40 +55,18 @@ func (rr *SQLiteRecipeRepository) GetAllRecipes() (*commons.PagedList[recipes.Re
 	pageSize := 10
 	recipeItem := new(DBRecipe)
 	recipeRows := []any{&recipeItem.ID, &recipeItem.Name, &recipeItem.ResultingComponentID}
-	next := func() (*QueryResult[DBRecipe], error) {
+	next := func() (*commons.QueryResult[DBRecipe], error) {
 		return GetQueryPage[DBRecipe](rr.db, "SELECT * FROM recipes", recipeItem, recipeRows, pageSize, 0)
 	}
 	parser := func(dbRecipePage *[]*DBRecipe) ([]*recipes.Recipe, error) {
 		return ParseDBRecipeList(*dbRecipePage)
 	}
-	result, err := ParseQueryPage[DBRecipe, recipes.Recipe](next, parser)
+	result, err := commons.ParseQueryPage[DBRecipe, recipes.Recipe](next, parser)
 	if err != nil {
 		return nil, err
 	} else {
 		return result, nil
 	}
-}
-
-// Recibe un `next` y un parser; devuelve un `PagedList[T]` parseado para business
-func ParseQueryPage[F any, T any](query func() (*QueryResult[F], error), parser func(dbPage *[]*F) ([]*T, error)) (*commons.PagedList[T], error) {
-	page, queryErr := query()
-	if queryErr != nil {
-		return nil, queryErr
-	}
-	items, parserErr := parser(&page.items)
-	if parserErr != nil {
-		return nil, parserErr
-	}
-	pagedResult := commons.PagedList[T]{
-		Items:       items,
-		PageSize:    page.pageSize,
-		CurrentPage: page.currentPage,
-		HasNext:     page.next != nil,
-		GetNextPage: func() (*commons.PagedList[T], error) {
-			return ParseQueryPage[F, T](page.next, parser)
-		},
-	}
-	return &pagedResult, nil
 }
 
 func ParseDBRecipeList(dbRecipeList []*DBRecipe) ([]*recipes.Recipe, error) {
@@ -111,14 +89,7 @@ func ParseComponent(dbComponentID string) *recipes.Component {
 	return nil
 }
 
-type QueryResult[T any] struct {
-	items       []*T
-	next        func() (*QueryResult[T], error)
-	currentPage int
-	pageSize    int
-}
-
-func GetQueryPage[T any](db *sql.DB, query string, scanItem *T, scanRows []any, pageSize int, pageNumber int) (*QueryResult[T], error) {
+func GetQueryPage[T any](db *sql.DB, query string, scanItem *T, scanRows []any, pageSize int, pageNumber int) (*commons.QueryResult[T], error) {
 	query = query + " LIMIT ? OFFSET ?"
 	rows, err := db.Query(query, pageSize+1, pageNumber*pageSize)
 	if err != nil {
@@ -137,20 +108,20 @@ func GetQueryPage[T any](db *sql.DB, query string, scanItem *T, scanRows []any, 
 		resultList = append(resultList, scanItem)
 	}
 
-	var next func() (*QueryResult[T], error)
+	var next func() (*commons.QueryResult[T], error)
 	if len(resultList) > pageSize {
-		next = func() (*QueryResult[T], error) {
+		next = func() (*commons.QueryResult[T], error) {
 			return GetQueryPage[T](db, query, scanItem, scanRows, pageSize, pageNumber+1)
 		}
 	} else {
 		next = nil
 	}
 
-	result := QueryResult[T]{
-		items:       resultList,
-		next:        next,
-		currentPage: pageNumber,
-		pageSize:    pageSize,
+	result := commons.QueryResult[T]{
+		Items:       resultList,
+		Next:        next,
+		CurrentPage: pageNumber,
+		PageSize:    pageSize,
 	}
 
 	if scanError != nil {
