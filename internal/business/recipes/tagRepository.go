@@ -1,12 +1,8 @@
 package recipes
 
-import (
-	recipes "github.com/andresdb91/letmecook/internal/business/recipes"
-)
-
 type TagRepository interface {
-	GetTagByID(id string) (*recipes.Tag, error)
-	GetTagsByIDList(ids []string) ([]*recipes.Tag, error)
+	GetTagByID(id string) (*Tag, error)
+	GetTagsByIDList(ids []string) ([]*Tag, error)
 }
 
 type TagService struct {
@@ -17,11 +13,11 @@ func NewTagService(repository TagRepository) *TagService {
 	return &TagService{repository: repository}
 }
 
-func (ts *TagService) GetTagByID(id string) (*recipes.Tag, error) {
+func (ts *TagService) GetTagByID(id string) (*Tag, error) {
 	return ts.repository.GetTagByID(id)
 }
 
-func (ts *TagService) GetIndexedTags(tags []*recipes.Tag) ([]*recipes.Tag, error) {
+func (ts *TagService) GetIndexedTags(tags []*Tag) ([]*Tag, error) {
 	var indexedTagIDs []string
 	for _, tag := range tags {
 		if tag.Indexed {

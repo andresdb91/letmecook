@@ -1,6 +1,10 @@
 package recipes
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+
+	"github.com/andresdb91/letmecook/pkg/commons"
+)
 
 type Tag struct {
 	ID      uuid.UUID
@@ -12,7 +16,7 @@ type Component struct {
 	ID      uuid.UUID
 	Name    string
 	Tags    []Tag
-	Recipes []*Recipe
+	Recipes commons.PagedList[Recipe]
 }
 
 type Unit struct {
@@ -34,20 +38,20 @@ func (q *Quantity) ConvertTo(unit *Unit) {
 type Ingredient struct {
 	Component    *Component
 	Amount       Quantity
-	Replacements []*Component
+	Replacements commons.PagedList[Component]
 }
 
 type Step struct {
 	Description string
-	Components  []*Component
+	Components  commons.PagedList[Component]
 	Picture     string
 }
 
 type Recipe struct {
 	ID                 uuid.UUID
-	ResultingComponent *Component
 	Name               string
-	Ingredients        []Ingredient
-	Steps              []Step
+	ResultingComponent *Component
+	Ingredients        commons.PagedList[Ingredient]
+	Steps              commons.PagedList[Step]
 	Tags               []Tag
 }
