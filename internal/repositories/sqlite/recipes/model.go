@@ -40,29 +40,29 @@ type DBRecipeTag struct {
 	Name string
 }
 
-type Component struct {
+type DBComponent struct {
 	ID   string
 	Name string
 	// Tags    []Tag
 }
 
-type ComponentTag struct {
+type DBComponentTag struct {
 	ComponentID string
 	TagID       string
 }
 
-type Tag struct {
+type DBTag struct {
 	ID   string
 	Name string
 }
 
-type Unit struct {
+type DBUnit struct {
 	ID   string
 	Name string
 	// conversionTable map[string]float64
 }
 
-type UnitConversion struct {
+type DBUnitConversion struct {
 	FromUnitID string
 	ToUnitID   string
 	Factor     float64

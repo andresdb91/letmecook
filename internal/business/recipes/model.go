@@ -16,7 +16,7 @@ type Component struct {
 	ID      uuid.UUID
 	Name    string
 	Tags    []Tag
-	Recipes commons.PagedList[Recipe]
+	Recipes *commons.PagedList[Recipe]
 }
 
 type Unit struct {
@@ -38,12 +38,12 @@ func (q *Quantity) ConvertTo(unit *Unit) {
 type Ingredient struct {
 	Component    *Component
 	Amount       Quantity
-	Replacements commons.PagedList[Component]
+	Replacements *commons.PagedList[Component]
 }
 
 type Step struct {
 	Description string
-	Components  commons.PagedList[Component]
+	Components  *commons.PagedList[Component]
 	Picture     string
 }
 
@@ -51,7 +51,7 @@ type Recipe struct {
 	ID                 uuid.UUID
 	Name               string
 	ResultingComponent *Component
-	Ingredients        commons.PagedList[Ingredient]
-	Steps              commons.PagedList[Step]
+	Ingredients        *commons.PagedList[Ingredient]
+	Steps              *commons.PagedList[Step]
 	Tags               []Tag
 }

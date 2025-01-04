@@ -55,12 +55,14 @@ func (rr *SQLiteRecipeRepository) GetAllRecipes() (*commons.PagedList[recipes.Re
 	pageSize := 10
 	recipeItem := new(DBRecipe)
 	recipeRows := []any{&recipeItem.ID, &recipeItem.Name, &recipeItem.ResultingComponentID}
+
 	next := func() (*commons.QueryResult[DBRecipe], error) {
 		return GetQueryPage[DBRecipe](rr.db, "SELECT * FROM recipes", recipeItem, recipeRows, pageSize, 0)
 	}
 	parser := func(dbRecipePage *[]*DBRecipe) ([]*recipes.Recipe, error) {
-		return ParseDBRecipeList(*dbRecipePage)
+		return parseDBRecipeList(*dbRecipePage)
 	}
+
 	result, err := commons.ParseQueryPage[DBRecipe, recipes.Recipe](next, parser)
 	if err != nil {
 		return nil, err
@@ -69,64 +71,33 @@ func (rr *SQLiteRecipeRepository) GetAllRecipes() (*commons.PagedList[recipes.Re
 	}
 }
 
-func ParseDBRecipeList(dbRecipeList []*DBRecipe) ([]*recipes.Recipe, error) {
+func parseDBRecipeList(dbRecipeList []*DBRecipe) ([]*recipes.Recipe, error) {
 	var recipeList []*recipes.Recipe
 	for _, dbRecipe := range dbRecipeList {
-		recipeList = append(recipeList, ParseRecipe(dbRecipe))
+		parsedRecipe, err := parseRecipe(dbRecipe)
+		if err != nil {
+			return nil, err
+		}
+		recipeList = append(recipeList, parsedRecipe)
 	}
 	return recipeList, nil
 }
 
-func ParseRecipe(dbRecipe *DBRecipe) *recipes.Recipe {
-	return &recipes.Recipe{
-		ID:                 uuid.MustParse(dbRecipe.ID),
-		Name:               dbRecipe.Name,
-		ResultingComponent: ParseComponent(dbRecipe.ResultingComponentID),
-	}
-}
-
-func ParseComponent(dbComponentID string) *recipes.Component {
-	return nil
-}
-
-func GetQueryPage[T any](db *sql.DB, query string, scanItem *T, scanRows []any, pageSize int, pageNumber int) (*commons.QueryResult[T], error) {
-	query = query + " LIMIT ? OFFSET ?"
-	rows, err := db.Query(query, pageSize+1, pageNumber*pageSize)
+func parseRecipe(dbRecipe *DBRecipe) (*recipes.Recipe, error) {
+	component, err := ComponentRepository.GetComponentByID(dbRecipe.ResultingComponentID)
+	ingredients, err := IngredientRepository.GetIngredientsByRecipeID(dbRecipe.ID)
+	steps, err := StepRepository.GetStepsByRecipeID(dbRecipe.ID)
+	tags, err := TagRepository.GetTagsByOwnerID(dbRecipe.ID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	var resultList []*T
-	// var pagedRecipes commons.PagedList[T]
-	var scanError error
-	for rows.Next() {
-		if scanError = rows.Scan(scanRows...); scanError != nil {
-			// return &pagedRecipes, err
-			break
-		}
-		resultList = append(resultList, scanItem)
-	}
-
-	var next func() (*commons.QueryResult[T], error)
-	if len(resultList) > pageSize {
-		next = func() (*commons.QueryResult[T], error) {
-			return GetQueryPage[T](db, query, scanItem, scanRows, pageSize, pageNumber+1)
-		}
-	} else {
-		next = nil
-	}
-
-	result := commons.QueryResult[T]{
-		Items:       resultList,
-		Next:        next,
-		CurrentPage: pageNumber,
-		PageSize:    pageSize,
-	}
-
-	if scanError != nil {
-		return &result, scanError
-	} else {
-		return &result, nil
-	}
+	return &recipes.Recipe{
+		ID:                 uuid.MustParse(dbRecipe.ID),
+		Name:               dbRecipe.Name,
+		ResultingComponent: component,
+		Ingredients:        ingredients,
+		Steps:              steps,
+		Tags:               tags,
+	}, nil
 }

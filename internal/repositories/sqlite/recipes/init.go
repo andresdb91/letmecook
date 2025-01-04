@@ -7,6 +7,11 @@ import (
 	_ "github.com/ncruces/go-sqlite3/embed"
 )
 
+var (
+	RecipeRepository    SQLiteRecipeRepository
+	ComponentRepository SQLiteComponentRepository
+)
+
 func NewSQLiteDB(path string) *sql.DB {
 	var db *sql.DB
 	if path == "" {
@@ -17,10 +22,8 @@ func NewSQLiteDB(path string) *sql.DB {
 	return db
 }
 
-func Init(path string) map[string]interface{} {
+func Init(path string) {
 	db := NewSQLiteDB(path)
-	repositories := map[string]interface{}{
-		"recipe": SQLiteRecipeRepository{db: db},
-	}
-	return repositories
+	RecipeRepository = SQLiteRecipeRepository{db: db}
+	ComponentRepository = SQLiteComponentRepository{db: db}
 }
