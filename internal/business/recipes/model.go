@@ -15,7 +15,7 @@ type Tag struct {
 type Component struct {
 	ID      uuid.UUID
 	Name    string
-	Tags    []Tag
+	Tags    *commons.PagedList[Tag]
 	Recipes *commons.PagedList[Recipe]
 }
 
@@ -53,5 +53,5 @@ type Recipe struct {
 	ResultingComponent *Component
 	Ingredients        *commons.PagedList[Ingredient]
 	Steps              *commons.PagedList[Step]
-	Tags               []Tag
+	Tags               *commons.PagedList[Tag]
 }

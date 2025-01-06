@@ -8,8 +8,12 @@ import (
 )
 
 var (
-	RecipeRepository    SQLiteRecipeRepository
-	ComponentRepository SQLiteComponentRepository
+	RecipeRepository     SQLiteRecipeRepository
+	ComponentRepository  SQLiteComponentRepository
+	IngredientRepository SQLiteIngredientRepository
+	StepRepository       SQLiteStepRepository
+	TagRepository        SQLiteTagRepository
+	UnitRepository       SQLiteUnitRepository
 )
 
 func NewSQLiteDB(path string) *sql.DB {
